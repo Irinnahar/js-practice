@@ -2,11 +2,12 @@ const form = document.querySelector('#task-form');
 const inputText = document.querySelector('#task');
 const taskList = document.querySelector('.collection');
 const clearTask = document.querySelector('.clear-tasks');
+const filterText = document.querySelector('#filter');
 
 form.addEventListener('submit', addTask);
 taskList.addEventListener('click', removeTask);
 clearTask.addEventListener('click', clearAllTask);
-
+filterText.addEventListener('keyup', filterTask)
 
 // add a task
 function addTask (e) {
@@ -41,4 +42,17 @@ function clearAllTask(e){
   while(taskList.firstChild){
     taskList.firstChild.remove();
   }
+}
+
+// filter task
+function filterTask(e){
+  let text = e.target.value.toLowerCase();
+
+  document.querySelectorAll('.collection-item').forEach((task) => {
+    const item = task.firstChild.textContent;
+
+    if(item.toLowerCase().indexOf(text) != -1) {
+      console.log(item)
+    }
+  })
 }
