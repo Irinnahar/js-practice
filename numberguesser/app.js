@@ -25,17 +25,30 @@ const game = document.querySelector('#game'),
 minNum.textContent = min;
 maxNum.textContent = max;
 
-
+console.log(winningNum)
 guessBtn.addEventListener('click', submitForm)
 
 function submitForm(){
   if(guessInput.value > max || guessInput.value < min ){
     setMessage(`Please select a number between ${min} to ${max}`, 'red')
   } else {
+    if(guessesLeft < 0){
+      window.location.reload()
+    }
     if(guessInput.value == winningNum) {
-      setMessage('You have won!!', 'green')
+      setMessage('You have won!!', 'green');
+      guessInput.disabled = 'true';
+      guessBtn.value = 'Play Again'
+      guessesLeft = -1;
     } else {
-      setMessage(`You have lost! The guessing number was ${winningNum}`, 'red')
+      guessesLeft -= 1;
+      setMessage(`You have  ${guessesLeft} guess left`);
+      if(guessesLeft <= 0 ){
+        setMessage(`You have lost!! The guessing number was ${winningNum}. `, 'red');
+        guessInput.disabled = 'true';
+        guessBtn.value = 'Play Again'
+        guessesLeft = -1;
+      }
     }
   }
 }
