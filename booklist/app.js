@@ -9,8 +9,15 @@ function Book(title, author, isbn) {
 function UI() {
 }
 
+// get input value
+const title = document.getElementById('title'),
+  author = document.getElementById('author'),
+  isbn = document.getElementById('isbn'),
+  form = document.getElementById('book-form'),
+  container = document.querySelector('.container'),
+  bookList = document.getElementById('book-list');
+
 UI.prototype.addBookToList = function (book) {
-  const table = document.getElementById('book-list');
   const row = document.createElement('tr');
   row.innerHTML = `
     <td> ${book.title} </td>
@@ -18,7 +25,24 @@ UI.prototype.addBookToList = function (book) {
     <td> ${book.isbn} </td>
     <td> <a href="#" class="delete" >X</a> </td>
   `
-  table.appendChild(row);
+  bookList.appendChild(row);
+}
+
+UI.prototype.removeBook = function(target){
+  if(target.className === 'delete'){
+    if(confirm('Are you sure?')){
+      target.parentElement.parentElement.remove()
+    }
+  }
+}
+
+// book delete
+bookList.addEventListener('click', bookListRemove);
+function bookListRemove(e){
+  const ui = new UI();
+  ui.removeBook(e.target);
+
+  e.preventDefault();
 }
 
 // clear input field
@@ -28,18 +52,32 @@ UI.prototype.clearBookList = function (book) {
   isbn.value = '';
 }
 
-// get input value
-document.getElementById('book-form').addEventListener('submit', formSubmit);
-const title = document.getElementById('title'),
-  author = document.getElementById('author'),
-  isbn = document.getElementById('isbn')
+// show error
+UI.prototype.showMessage = function (msg, className){
+  const card = document.createElement('div');
+  card.className = `alert ${className}`;
+  card.innerText = msg;
+
+  container.insertBefore(card, form);
+
+  setTimeout(()=> {
+    card.style.display = 'none';
+  },2000)
+}
+
+form.addEventListener('submit', formSubmit);
 
 function formSubmit(e) {
   const book = new Book(title.value, author.value, isbn.value);
   const ui = new UI();
-  
-  ui.addBookToList(book);
-  ui.clearBookList(book);
+
+  if(title.value === '' || author.value === '', isbn.value === ''){
+    ui.showMessage('Please add value to all field', 'error');
+  }else {
+    ui.addBookToList(book);
+    ui.clearBookList();
+    ui.showMessage('Book added successfully!', 'success')
+  }
 
   e.preventDefault();
 }
