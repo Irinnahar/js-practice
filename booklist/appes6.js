@@ -1,13 +1,11 @@
-// get input value
-const title = document.getElementById('title'),
+const form = document.getElementById('book-form'),
+  title = document.getElementById('title'),
   author = document.getElementById('author'),
   isbn = document.getElementById('isbn'),
-  form = document.getElementById('book-form'),
-  container = document.querySelector('.container'),
-  bookList = document.getElementById('book-list');
+  bookList = document.getElementById('book-list'),
+  container = document.querySelector('.container')
 
-
-class Book {
+class Books {
   constructor(title, author, isbn) {
     this.title = title;
     this.author = author;
@@ -22,64 +20,98 @@ class UI {
       <td> ${book.title} </td>
       <td> ${book.author} </td>
       <td> ${book.isbn} </td>
-      <td> <a href="#" class="delete" >X</a> </td>
+      <td><a href='#' class="delete">X</a></td>
     `
     bookList.appendChild(row);
   }
 
-  // remove book
-  removeBook(target) {
-    if (target.className === 'delete') {
-      if (confirm('Are you sure?')) {
-        target.parentElement.parentElement.remove();
-        this.showMessage('Books removed successfully', 'success')
-      }
-    }
-  }
-
-  // clearbook
-  clearBookList() {
+  clearInputFields() {
     title.value = '';
     author.value = '';
     isbn.value = '';
   }
 
-  // message show
-  showMessage(msg, className) {
-    const card = document.createElement('div');
-    card.className = `alert ${className}`;
-    card.innerText = msg;
-
-    container.insertBefore(card, form);
+  showAlertMessages(message, className) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `alert ${className}`;
+    msgDiv.innerHTML = message;
+    container.insertBefore(msgDiv, form);
 
     setTimeout(() => {
-      card.style.display = 'none';
-    }, 2000)
+      msgDiv.style.display = 'none';
+    }, 2000);
+  }
+
+  removeBookFromList(target){
+    if(confirm('Are you sure?')){
+      target.parentElement.parentElement.remove();
+    }
+    ui.showAlertMessages('Deleted successfully', 'success');
   }
 }
 
-// book delete
-bookList.addEventListener('click', bookListRemove);
-function bookListRemove(e) {
-  const ui = new UI();
-  ui.removeBook(e.target);
+class storeToLocalStorage{
+  static addToLocalstroage(book){
+    let books;
+    if(localStorage.getItem('books') === null){
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+    books.push(book);
+    localStorage.setItem('books', JSON.stringify(books));
+  }
 
-  e.preventDefault();
+  static removeBookFromLocalstroage(target){
+    const books = JSON.parse(localStorage.getItem('books'));
+
+    books.forEach((book, index) => {
+      if(book.isbn.trim() === target.trim()){
+        books.splice(index, 1);
+      }
+    })
+    localStorage.setItem('books', JSON.stringify(books));
+  }
 }
 
-form.addEventListener('submit', formSubmit);
+const book = new Books();
+const ui = new UI();
 
-function formSubmit(e) {
-  const book = new Book(title.value, author.value, isbn.value);
-  const ui = new UI();
+// DOM Manipulation add book
+form.addEventListener('submit', (e) => {
+  if (title.value == '' || author.value == '' || isbn.value == '') {
+    ui.showAlertMessages('Please add information to each field', 'error');
+  } else {
+    book.title = title.value;
+    book.author = author.value;
+    book.isbn = isbn.value;
 
-  if(title.value === '' || author.value === '', isbn.value === ''){
-    ui.showMessage('Please add value to all field', 'error');
-  }else {
     ui.addBookToList(book);
-    ui.clearBookList();
-    ui.showMessage('Book added successfully!', 'success')
+    ui.showAlertMessages('Book added', 'success');
+    storeToLocalStorage.addToLocalstroage(book);
+    ui.clearInputFields();
   }
 
   e.preventDefault();
-}
+})
+
+// remove book by event delegation
+bookList.addEventListener('click', (e) => {
+  if(e.target.classList.contains('delete')){
+    ui.removeBookFromList(e.target);
+    storeToLocalStorage.removeBookFromLocalstroage(e.target.parentElement.previousElementSibling.textContent);
+  }
+  e.preventDefault();
+})
+
+// show book at initial loading
+window.addEventListener('DOMContentLoaded', () => {
+  if(localStorage.getItem('books')){
+    const books = JSON.parse(localStorage.getItem('books'));
+    
+    books.forEach((book) => {
+      ui.addBookToList(book);
+    })
+  }
+
+})
